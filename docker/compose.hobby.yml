@@ -2,7 +2,7 @@
 services:
     backend:
         container_name: backend
-        image: ${BACKEND_IMAGE_NAME-ghcr.io/highlight/highlight-backend:latest}
+        image: ghcr.io/highlight/highlight-backend:docker-v0.5.6
         restart: on-failure
         ports:
             - '0.0.0.0:8082:8082'
@@ -16,16 +16,27 @@ services:
 
     frontend:
         container_name: frontend
-        image: ${FRONTEND_IMAGE_NAME-ghcr.io/highlight/highlight-frontend:latest}
+        image: ghcr.io/highlight/highlight-frontend:docker-v0.5.6
         restart: on-failure
         volumes:
             - ../backend/localhostssl/server.key:/etc/ssl/private/ssl-cert.key
             - ../backend/localhostssl/server.pem:/etc/ssl/certs/ssl-cert.pem
+            - ./nginx-hobby.conf:/etc/nginx/conf.d/default.conf
         ports:
             - '0.0.0.0:3000:3000'
             - '0.0.0.0:6006:6006'
             - '0.0.0.0:8080:8080'
         env_file: .env
+
+    collector:
+        container_name: collector
+        image: otel/opentelemetry-collector-contrib:0.128.0
+        restart: on-failure
+        ports:
+            - '0.0.0.0:4317:4317'
+            - '0.0.0.0:4318:4318'
+        volumes:
+            - ./collector-hobby.yml:/etc/otelcol-contrib/config.yaml
 
 volumes:
     highlight-data:
